@@ -1,0 +1,4 @@
+scipy==1.6.0
+numpy==1.20.0
+sparse_dot_topn==0.2.9
+scikit_learn==0.24.1
