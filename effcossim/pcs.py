@@ -105,9 +105,9 @@ def pairwise_cosine_similarity(
 
         # Number of workers
         if n_jobs == 1:
-            use_threads=False
+            use_threads = False
         elif n_jobs <= 0:
-            jobs = cpu_count()
+            n_jobs = cpu_count()
             use_threads = True
         else:
             use_threads = True
