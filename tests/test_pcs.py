@@ -4,7 +4,7 @@ sys.path.insert(0, './')
 from numpy import array
 from scipy.sparse import isspmatrix, random, csr_matrix
 from pytest import approx
-from effcossim.pcs import pairwise_cosine_similarity
+from effcossim.pcs import pairwise_cosine_similarity, pp_pcs
 
 
 A = array(
@@ -73,6 +73,9 @@ H = csr_matrix(
         [0, 0, 4, 0, 1, 2]
     ]
 )
+
+l1 = [random(m=1000, n=1000, density=0.3,) for _ in range(6)]
+l2 = [random(m=900, n=1000, density=0.3,) for _ in range(6)]
 
 
 def test_pcs_efficient_false_dense_output_true():
@@ -212,3 +215,15 @@ def test_pcs_efficient_true_multi_dimensional():
     )
     assert  output_1.sum() == approx(output_2.sum()), "Multi-dimensional error."
     
+def test_pp_pcs():
+    L = pp_pcs(
+        l1=l1, 
+        l2=l2, 
+        n_workers=2, 
+        efficient=True, 
+        n_top=10, 
+        lower_bound=0.3, 
+        n_jobs=2, 
+        dense_output=False
+    )
+    assert isinstance(L, list), "Parallel run error."
