@@ -80,6 +80,9 @@ def pairwise_cosine_similarity(
         # Standard scikit-learn implementation        
         M = cosine_similarity(X=A, Y=B, dense_output=dense_output)
 
+        if not dense_output:
+            M = csr_matrix(M)
+
         return M
     
     else:
