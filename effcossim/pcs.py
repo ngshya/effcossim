@@ -4,7 +4,7 @@ from multiprocessing import cpu_count, Pool
 from scipy.sparse import csr_matrix, isspmatrix
 from sparse_dot_topn import awesome_cossim_topn
 from numpy import float64, array, prod, ndarray
-from functools import partial
+from functools import partial, reduce
 
 
 def pairwise_cosine_similarity(
@@ -196,3 +196,94 @@ def pp_pcs(
     pool.close()
     pool.join()
     return output
+
+
+class MLC:
+    '''
+    Matrix Linear Combination Class
+    '''
+
+    def __init__(self, M=None, W=None):
+        '''
+        Initializing the object.
+
+        Parameters
+        ----------
+        M : list, optional
+            List of sparse matrices or numpy arrays, by default None
+        W : list, optional
+            List of weights, by default None
+
+        Returns
+        -------
+        Sparse matrix or numpy array
+            The linear combination of the matrices W[0]*M[0]+W[1]*M[1]+... is 
+            saved in self.output attribute.
+        '''
+        self.__W = None
+        self.__M = None
+        self.output = None
+        if W is not None:
+            self.update_W(W, return_output=False)
+        if M is not None:
+            return self.update_M(M, return_output=False)
+        
+    def update_M(self, M, return_output=True):
+        '''
+        Update the list of matrices.
+
+        Parameters
+        ----------
+        M : list
+            List of sparse matrices or numpy arrays
+        return_output : bool, optional
+            Whether to return the linear combination, by default True
+
+        Returns
+        -------
+        Sparse matrix or numpy array or None
+            Linear combination or None.
+        '''
+        assert isinstance(M, list), "M is not a list"
+        assert all([isspmatrix(m) or isinstance(m, (ndarray)) for m in M]),\
+            "Not every element of M is a sparse matrix or a ndarray."
+        self.__M = M
+        if self.__W is None:
+            self.update_W(W=[1.0/len(M)]*len(M))
+        self.__compute_linear_combination()
+        if return_output:
+            return self.output
+
+    def update_W(self, W, return_output=True):
+        '''
+        Update the list of weights.
+
+        Parameters
+        ----------
+        W : list
+            List of weights
+        return_output : bool, optional
+            Whether to return the linear combination, by default True
+
+        Returns
+        -------
+        Sparse matrix or numpy array or None
+            Linear combination or None.
+        '''
+        assert isinstance(W, list), "W is not a list."
+        tot = sum(W)
+        W = [w/tot for w in W]
+        self.__W = W
+        self.__compute_linear_combination()
+        if return_output:
+            return self.output
+
+    def __compute_linear_combination(self):
+        if isinstance(self.__W, list) and isinstance(self.__M, list) and \
+            (len(self.__M) > 0) and (len(self.__M) == len(self.__W)):
+            self.output = reduce(
+                lambda x,y: x+y, 
+                [self.__W[j] * self.__M[j] for j in range(len(self.__W))]
+            )
+        else:
+            self.output = None

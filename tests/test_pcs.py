@@ -4,7 +4,7 @@ sys.path.insert(0, './')
 from numpy import array
 from scipy.sparse import isspmatrix, random, csr_matrix
 from pytest import approx
-from effcossim.pcs import pairwise_cosine_similarity, pp_pcs
+from effcossim.pcs import pairwise_cosine_similarity, pp_pcs, MLC
 
 
 A = array(
@@ -73,6 +73,31 @@ H = csr_matrix(
         [0, 0, 4, 0, 1, 2]
     ]
 )
+
+X = array([
+    [1, 2], 
+    [0, 1]
+])
+
+Y = array([
+    [0, 3], 
+    [1, 0]
+])
+
+Z = array([
+    [0, 3], 
+    [1, 0]
+])
+
+L = csr_matrix([
+    [1, 2], 
+    [0, 1]
+])
+
+M = csr_matrix([
+    [0, 3], 
+    [1, 0]
+])
 
 l1 = [random(m=1000, n=1000, density=0.3,) for _ in range(6)]
 l2 = [random(m=900, n=1000, density=0.3,) for _ in range(6)]
@@ -227,3 +252,18 @@ def test_pp_pcs():
         dense_output=False
     )
     assert isinstance(L, list), "Parallel run error."
+
+def test_mlc():
+    obj_mlc = MLC(M=[X, Y], W=[2, 1])
+    assert obj_mlc.output.sum() == approx(4.0)
+    assert obj_mlc.update_W([0, 3]).sum() == approx(4.0)
+    assert obj_mlc.update_M([X, Z]).sum() == approx(4.0)
+    obj_mlc = MLC(M=[X, Y])
+    assert obj_mlc.output.sum() == approx(4.0)
+    obj_mlc = MLC(W=[2, 1])
+    assert obj_mlc.output is None
+    assert obj_mlc.update_M([X, Z]).sum() == approx(4.0)
+    assert obj_mlc.update_M([X, Z, X]) is None
+    obj_mlc = MLC()
+    assert obj_mlc.update_M([X, Z]).sum() == approx(4.0)
+    assert obj_mlc.update_M([L, M]).sum() == approx(4.0)
