@@ -25,7 +25,7 @@ setup(
     long_description_content_type='text/markdown',
     author='ngshya',
     author_email='ngshya@gmail.com',
-    url='https://github.com/ngshya/sdaab',
+    url='https://github.com/ngshya/effcossim',
     license='GPLv3',
     packages=find_packages(exclude=["tests"]),
     install_requires=requirements,
